@@ -20,3 +20,12 @@ func GetEffectiveRiskScoreByMatchedRules(matchedRules types.DetectionRuleList) f
 	}
 	return effectiveRiskScore //return effective risk score
 }
+
+func NormalizeScores(totalRiskScore float64) float64 {
+
+	if totalRiskScore > 1.00 {
+		totalRiskScore = 1.00
+	}
+
+	return totalRiskScore //return effective risk score
+}

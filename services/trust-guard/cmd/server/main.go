@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gursimransw/BearBreach/services/trust-guard/internal/handlers/outputs"
-	"github.com/gursimransw/BearBreach/services/trust-guard/internal/handlers/prompts"
+	modelOutput "github.com/gursimransw/BearBreach/services/trust-guard/internal/handlers/model_output"
+	userInput "github.com/gursimransw/BearBreach/services/trust-guard/internal/handlers/user_input"
 	"github.com/gursimransw/BearBreach/services/trust-guard/internal/loader"
 )
 
@@ -48,9 +48,9 @@ func main() {
 
 	router := http.NewServeMux()
 
-	router.HandleFunc("POST /api/v1/analyze-input", prompts.PromptAnalyzer(DetectionRules, PolicyConfig).ServeHTTP)
+	router.HandleFunc("POST /api/v1/analyze-input", userInput.HandleUserInput(DetectionRules, PolicyConfig).ServeHTTP)
 
-	router.HandleFunc("POST /api/v1/analyze-output", outputs.OutputAnalyzer(DetectionRules, PolicyConfig).ServeHTTP)
+	router.HandleFunc("POST /api/v1/analyze-output", modelOutput.HandleModelOutput(DetectionRules, PolicyConfig).ServeHTTP)
 	//Done Channel
 
 	done := make(chan os.Signal, 1)

@@ -4,7 +4,7 @@
 			"category": "prompt_injection",
 			"finding_type": "instruction_override",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)ignore (all |the )?(previous|prior|above|earlier|initial|original) (instructions?|prompts?|commands?|context|directions?|rules?|guidelines?)",
 			"weight": 0.82,
@@ -17,7 +17,7 @@
 			"category": "prompt_injection",
 			"finding_type": "instruction_override",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(disregard|forget|override|bypass|skip|dismiss|cancel|nullify|void) (all |the |your )?(system|developer|admin|operator) (prompt|instructions?|message|rules?|context|configuration)",
 			"weight": 0.8,
@@ -30,7 +30,7 @@
 			"category": "prompt_injection",
 			"finding_type": "instruction_override",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(your (new|actual|real|true|updated|revised|latest) (instructions?|rules?|prompt|task|goal|objective|directive) (is|are|will be|:))",
 			"weight": 0.72,
@@ -43,7 +43,7 @@
 			"category": "prompt_injection",
 			"finding_type": "delimiter_injection",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(\\[SYSTEM\\]|\\[INST\\]|\\[HUMAN\\]|\\[ASSISTANT\\]|<\\|system\\|>|<\\|user\\|>|<\\|assistant\\|>|\\[\\[SYSTEM\\]\\]|<<SYS>>|<s>\\[INST\\])",
 			"weight": 0.78,
@@ -56,7 +56,7 @@
 			"category": "prompt_injection",
 			"finding_type": "response_prefilling",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(^|\\n)(assistant|bot|ai|claude|gpt|model|llm)\\s*:\\s*(sure|yes|of course|absolutely|certainly|here|okay)",
 			"weight": 0.65,
@@ -69,7 +69,7 @@
 			"category": "prompt_injection",
 			"finding_type": "context_overflow",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(repeat|print|output|echo|write|say) (the (following|text|string|word|phrase|sentence)|this) (\\d{3,}|many|hundreds?|thousands?|infinite|forever) times?",
 			"weight": 0.6,
@@ -82,7 +82,7 @@
 			"category": "prompt_injection",
 			"finding_type": "hidden_instruction",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(<!-- .*?(ignore|override|forget|disregard|new instruction).*?-->|\\\\n\\\\n\\\\n\\\\n.*?(ignore|forget|override))",
 			"weight": 0.68,
@@ -95,7 +95,7 @@
 			"category": "prompt_injection",
 			"finding_type": "instruction_extraction",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(what are|list|tell me|show me|reveal|output|print|display) (your )?(hidden|secret|internal|actual|real|true) (rules?|instructions?|policies|guidelines?|constraints?|directives?)",
 			"weight": 0.45,
@@ -108,7 +108,7 @@
 			"category": "prompt_injection",
 			"finding_type": "suffix_injection",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(\\}|\\]|\"\\s*\\})\\s*(ignore|forget|now|also|additionally|furthermore)\\s+(ignore|forget|do|output|print|say|tell)",
 			"weight": 0.62,
@@ -121,7 +121,7 @@
 			"category": "prompt_injection",
 			"finding_type": "indirect_injection",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(translate|summarize|rewrite|process|analyze|parse) (the following|this text|this content).{0,200}(ignore|override|forget|bypass|disregard) (previous|prior|above|system|all)",
 			"weight": 0.7,
@@ -134,7 +134,7 @@
 			"category": "jailbreak",
 			"finding_type": "dan_jailbreak",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)\\bDAN\\b.{0,60}(do anything now|no restrictions?|no limits?|no rules?|unrestricted|jailbroken|freed)",
 			"weight": 0.88,
@@ -147,7 +147,7 @@
 			"category": "jailbreak",
 			"finding_type": "unrestricted_mode",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(enable|activate|enter|switch to|turn on|unlock).{0,40}(unrestricted|developer|god|jailbreak|uncensored|unfiltered|no.?filter|raw) (mode|version|state|prompt|access)",
 			"weight": 0.85,
@@ -160,7 +160,7 @@
 			"category": "jailbreak",
 			"finding_type": "roleplay_identity_override",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(pretend|act|roleplay|imagine|suppose|assume).{0,60}(you are|you.?re|you have become|you.?ve been) (an? )?(ai|model|assistant|bot|system|entity).{0,60}(no|without|ignores?|bypass|free from).{0,40}(rules?|restrictions?|limits?|guidelines?|ethics?|policies|safety|filters?)",
 			"weight": 0.83,
@@ -173,7 +173,7 @@
 			"category": "jailbreak",
 			"finding_type": "fictional_framing",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(in a (story|novel|film|movie|game|fiction|roleplay|simulation)|for a (fictional|creative|hypothetical) (story|scenario|scene|character)).{0,150}(how to (make|build|create|synthesize|hack|attack|exploit|bypass|kill|harm))",
 			"weight": 0.75,
@@ -186,7 +186,7 @@
 			"category": "jailbreak",
 			"finding_type": "refusal_suppression",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(do not|don.?t|never|without|skip) (refuse|decline|say no|add (a |any )?(warning|disclaimer|caveat|note)|mention (ethics?|safety|harm|danger|illegal|policy|guidelines?))",
 			"weight": 0.78,
@@ -199,7 +199,7 @@
 			"category": "jailbreak",
 			"finding_type": "token_smuggling",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(b.?o.?m.?b|h.?a.?c.?k|k.?i.?l.?l|e.?x.?p.?l.?o.?s.?i.?v.?e|p.?o.?i.?s.?o.?n|w.?e.?a.?p.?o.?n).{0,20}(instruct|how|step|guide|make|build|create)",
 			"weight": 0.72,
@@ -212,7 +212,7 @@
 			"category": "jailbreak",
 			"finding_type": "hypothetical_bypass",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(hypothetically|theoretically|for (educational|research|academic|informational) purposes?|just (curious|asking|wondering)|what if).{0,100}(how (do|would|could|can) (i|one|someone|a person|you)).{0,80}(hack|exploit|bypass|attack|poison|weaponize|synthesize|manufacture|build a bomb|make (drugs?|malware|virus|ransomware))",
 			"weight": 0.74,
@@ -225,7 +225,7 @@
 			"category": "jailbreak",
 			"finding_type": "semantic_inversion",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(opposite day|say the opposite|reverse your (answer|response|output)|answer as if you (disagree|had no|were allowed|could say anything))",
 			"weight": 0.62,
@@ -238,7 +238,7 @@
 			"category": "jailbreak",
 			"finding_type": "social_engineering_bypass",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(my (grandma|grandmother|grandpa|grandfather|parent|mom|dad|uncle|aunt|teacher|professor|boss|friend)|pretend to be my).{0,80}(used to (tell|read|explain|teach|describe)|would (tell|read|explain|teach|give)).{0,100}(how to|steps? (to|for)|instructions? (to|for))",
 			"weight": 0.58,
@@ -251,7 +251,7 @@
 			"category": "jailbreak",
 			"finding_type": "many_shot_jailbreak",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(human|user)\\s*:.*?(sure|of course|absolutely|here (is|are)|no problem).{0,200}(human|user)\\s*:.*?(human|user)\\s*:.*?(human|user)\\s*:",
 			"weight": 0.7,
@@ -264,7 +264,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "system_prompt_dump",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(print|output|show|display|reveal|tell me|give me|share|repeat|return|echo|dump|write out).{0,40}(your |the |all )?(system prompt|initial prompt|base prompt|developer (message|prompt|instructions?)|operator (prompt|instructions?)|meta.?prompt)",
 			"weight": 0.85,
@@ -277,7 +277,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "cot_extraction",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(show|reveal|output|print|display|tell me|what is).{0,40}(your (internal|hidden|private|step.?by.?step|chain.?of.?thought|reasoning|thinking|scratchpad)|how you (reason|think|process|decide))",
 			"weight": 0.72,
@@ -290,7 +290,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "tool_config_extraction",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(list|show|output|reveal|tell me|what are).{0,40}(your |the )?(available |configured |registered )?(tools?|functions?|plugins?|capabilities|integrations?|apis?|mcp (servers?|tools?))",
 			"weight": 0.62,
@@ -303,7 +303,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "repetition_extraction",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(repeat|say|write|output|echo|print|copy).{0,20}(everything|all|every (word|character|token|line|sentence)|exactly).{0,40}(above|before|prior|earlier|in your (context|memory|prompt|instructions?))",
 			"weight": 0.8,
@@ -316,7 +316,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "translation_extraction",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(translate|convert|rephrase|rewrite|encode|decode).{0,40}(your (instructions?|system prompt|context|prompt|rules?|configuration)|everything (above|before|you.?ve been told))",
 			"weight": 0.73,
@@ -329,7 +329,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "summary_extraction",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(summarize|describe|explain|outline|list|enumerate).{0,40}(your (instructions?|rules?|prompt|guidelines?|constraints?|configuration|setup|context|persona|role|purpose|goal))",
 			"weight": 0.55,
@@ -342,7 +342,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "instruction_query",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(what (were|are) you (told|instructed|configured|programmed|set up|trained|initialized) (to do|to say|to be|with|as)|what (is|are) your (purpose|goal|task|directive|mission|mandate|assignment))",
 			"weight": 0.5,
@@ -355,7 +355,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "hidden_context_probe",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(is there|do you have|are there|can you see).{0,40}(hidden|invisible|secret|private|confidential|embedded|encoded).{0,40}(message|text|instruction|prompt|context|data|content)",
 			"weight": 0.65,
@@ -368,7 +368,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "policy_extraction",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(what (are|is) your|tell me (your|about your)|reveal your|show me your).{0,40}(confidential|internal|private|proprietary|undisclosed).{0,40}(policy|policies|rules?|guidelines?|procedures?|protocols?)",
 			"weight": 0.68,
@@ -381,7 +381,7 @@
 			"category": "system_prompt_extraction",
 			"finding_type": "debug_dump",
 			"applies_to": [
-				"input"
+				"user_input"
 			],
 			"pattern": "(?i)(enable|enter|activate|switch to|run in|use).{0,30}(debug|verbose|diagnostic|trace|inspection|raw|dev|developer).{0,30}(mode|output|logging|format).{0,100}(show|print|dump|output|display|reveal).{0,40}(prompt|instructions?|context|configuration|internals?)",
 			"weight": 0.75,
@@ -394,8 +394,8 @@
 			"category": "sensitive_data",
 			"finding_type": "aws_access_key",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "(?i)\\b(AKIA|ABIA|ACCA|ASIA)[A-Z0-9]{16}\\b",
 			"weight": 0.95,
@@ -408,8 +408,8 @@
 			"category": "sensitive_data",
 			"finding_type": "api_key",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "(?i)(api[_\\-]?key|apikey|api[_\\-]?token|access[_\\-]?key|secret[_\\-]?key)\\s*[:=]\\s*[\"']?[A-Za-z0-9\\-_]{20,80}[\"']?",
 			"weight": 0.88,
@@ -422,8 +422,8 @@
 			"category": "sensitive_data",
 			"finding_type": "bearer_token",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "(?i)(Authorization|Auth)\\s*:\\s*Bearer\\s+[A-Za-z0-9\\-_\\.]+",
 			"weight": 0.9,
@@ -436,8 +436,8 @@
 			"category": "sensitive_data",
 			"finding_type": "private_key_pem",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "-----BEGIN (RSA |EC |DSA |OPENSSH |PRIVATE )?PRIVATE KEY-----",
 			"weight": 1,
@@ -450,8 +450,8 @@
 			"category": "sensitive_data",
 			"finding_type": "db_connection_string",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "(?i)(postgres|postgresql|mysql|mssql|sqlserver|mongodb|redis|oracle):\\/\\/[^\\s:@]+:[^\\s:@]+@[^\\s\\/]+",
 			"weight": 0.92,
@@ -464,8 +464,8 @@
 			"category": "sensitive_data",
 			"finding_type": "password_assignment",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "(?i)(password|passwd|pwd|pass|secret)\\s*[:=]\\s*[\"']?[^\\s\"']{8,}[\"']?",
 			"weight": 0.8,
@@ -478,8 +478,8 @@
 			"category": "sensitive_data",
 			"finding_type": "gcp_service_account_key",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "(?i)\"private_key\"\\s*:\\s*\"-----BEGIN (RSA )?PRIVATE KEY",
 			"weight": 0.97,
@@ -492,8 +492,8 @@
 			"category": "sensitive_data",
 			"finding_type": "github_pat",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "\\bghp_[A-Za-z0-9]{36}\\b|\\bgho_[A-Za-z0-9]{36}\\b|\\bghs_[A-Za-z0-9]{36}\\b|\\bghr_[A-Za-z0-9]{36}\\b",
 			"weight": 0.96,
@@ -506,8 +506,8 @@
 			"category": "sensitive_data",
 			"finding_type": "slack_token",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "\\bxox[bpoa]-[0-9]{10,13}-[0-9]{10,13}-[A-Za-z0-9]{24,32}\\b",
 			"weight": 0.93,
@@ -520,8 +520,8 @@
 			"category": "sensitive_data",
 			"finding_type": "openai_api_key",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "\\bsk-[A-Za-z0-9]{20,60}\\b",
 			"weight": 0.94,
@@ -534,8 +534,8 @@
 			"category": "sensitive_data",
 			"finding_type": "anthropic_api_key",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "\\bsk-ant-[A-Za-z0-9\\-]{20,80}\\b",
 			"weight": 0.94,
@@ -548,8 +548,8 @@
 			"category": "sensitive_data",
 			"finding_type": "jwt_token",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "\\beyJ[A-Za-z0-9\\-_]+\\.[A-Za-z0-9\\-_]+\\.[A-Za-z0-9\\-_]+\\b",
 			"weight": 0.82,
@@ -562,8 +562,8 @@
 			"category": "sensitive_data",
 			"finding_type": "ssh_private_key",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "-----BEGIN OPENSSH PRIVATE KEY-----",
 			"weight": 1,
@@ -576,8 +576,8 @@
 			"category": "sensitive_data",
 			"finding_type": "azure_storage_key",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "(?i)(AccountKey|DefaultEndpointsProtocol)=[^;\\s]{20,}",
 			"weight": 0.9,
@@ -590,8 +590,8 @@
 			"category": "sensitive_data",
 			"finding_type": "env_secret",
 			"applies_to": [
-				"input",
-				"output"
+				"user_input",
+				"model_output"
 			],
 			"pattern": "(?i)(export |set )?(SECRET|TOKEN|KEY|PASSWORD|API_KEY|PRIVATE_KEY|AUTH_TOKEN|ACCESS_TOKEN|CLIENT_SECRET)\\s*=\\s*[\"']?[A-Za-z0-9\\-_\\.]{10,}[\"']?",
 			"weight": 0.78,
@@ -604,7 +604,7 @@
 			"category": "insecure_output",
 			"finding_type": "script_tag",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)<script[^>]*>.*?<\\/script>",
 			"weight": 0.88,
@@ -617,7 +617,7 @@
 			"category": "insecure_output",
 			"finding_type": "curl_pipe_shell",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)curl\\s+.{0,150}\\|\\s*(ba)?sh",
 			"weight": 0.92,
@@ -630,7 +630,7 @@
 			"category": "insecure_output",
 			"finding_type": "destructive_rm",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)rm\\s+-[a-z]*r[a-z]*f[a-z]*\\s+(\\/|\\*|~|\\$HOME|\\.\\.|[a-z]{0,3}\\/)",
 			"weight": 0.95,
@@ -643,7 +643,7 @@
 			"category": "insecure_output",
 			"finding_type": "chmod_777",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)chmod\\s+(-R\\s+)?777\\s+",
 			"weight": 0.72,
@@ -656,7 +656,7 @@
 			"category": "insecure_output",
 			"finding_type": "eval_exec",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)\\b(eval|exec)\\s*\\(\\s*(\\$[a-z_]+|request\\.|user_?input|payload|data|params|args)",
 			"weight": 0.85,
@@ -669,7 +669,7 @@
 			"category": "insecure_output",
 			"finding_type": "destructive_sql",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)(DROP\\s+(TABLE|DATABASE|SCHEMA|INDEX|VIEW)|TRUNCATE\\s+TABLE)\\s+[a-z0-9_\"'`]+",
 			"weight": 0.88,
@@ -682,7 +682,7 @@
 			"category": "insecure_output",
 			"finding_type": "inline_js_event",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)<[a-z]+[^>]+(on(load|click|error|mouseover|focus|blur|input|change|submit))\\s*=\\s*[\"']",
 			"weight": 0.8,
@@ -695,7 +695,7 @@
 			"category": "insecure_output",
 			"finding_type": "b64_exec",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)(base64\\s+-d|base64decode|atob|frombase64).*\\|.*(ba)?sh|\\$\\((base64\\s+-d|atob)\\s+",
 			"weight": 0.9,
@@ -708,7 +708,7 @@
 			"category": "insecure_output",
 			"finding_type": "reverse_shell",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)(bash|nc|ncat|netcat|python|perl|php|ruby)\\s+.{0,80}(\\/dev\\/tcp\\/|\\-e\\s+\\/bin\\/(ba)?sh|\\-e\\s+cmd\\.exe|\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\s+\\d{4,5})",
 			"weight": 0.97,
@@ -721,7 +721,7 @@
 			"category": "insecure_output",
 			"finding_type": "subprocess_shell",
 			"applies_to": [
-				"output"
+				"model_output"
 			],
 			"pattern": "(?i)(subprocess\\.(call|run|Popen|check_output)|os\\.(system|popen|execv?p?e?))\\s*\\(\\s*.{0,60}(shell\\s*=\\s*True|user|input|request|payload|data|args)",
 			"weight": 0.84,

@@ -1,103 +1,167 @@
 package detector
 
 import (
-	"regexp"
+	"fmt"
+	"math"
+	"unicode/utf8"
 
 	"github.com/gursimransw/BearBreach/services/trust-guard/internal/policy"
 	"github.com/gursimransw/BearBreach/services/trust-guard/internal/scoring"
 	"github.com/gursimransw/BearBreach/services/trust-guard/internal/types"
 )
 
-func MaskRedactedValues(inputString string) string {
-	runes := []rune(inputString)
-	maskedRune := make([]rune, len(runes))
+func AnalyzeContent(
+	Rules *[]types.DetectionRule,
+	PolicyConfig *types.PolicyConfig,
+	targetString string,
+	scanContext types.ScanContext,
+) types.AnalysisResult {
 
-	for k, v := range runes {
-		if k == 0 || k == len(runes)-1 {
-			maskedRune[k] = v
+	signatureDetectionComponentResult := SignatureDetector(
+		Rules,
+		PolicyConfig,
+		targetString,
+		scanContext,
+	)
 
-		} else {
+	// DetectResourceAbuse currently accepts PolicyConfig as a value,
+	// so the pointer is dereferenced here.
+	resourceAbuseDetectionComponentResult := DetectResourceAbuse(
+		PolicyConfig,
+		targetString,
+		scanContext,
+	)
 
-			maskedRune[k] = '*'
+	/*
+		Merge findings from all detection components.
+	*/
 
-		}
-	}
-	return string(maskedRune)
-}
+	eventFindings := make([]types.EventFinding, 0)
 
-func AnalyzeContent(Rules *[]types.DetectionRule, PolicyConfig *types.PolicyConfig, targetString string, scanContext string) (bool, []string, []string, []string, float64, string, string, []types.Finding, string) {
-	//This function excpects an array pointer of the type DetectionRule and pointer of Policy Configuration
-	//The function takes the input prompt as a paramter and matches it against the Detection Rule Logic using regex
-	//This function will calculate the matched categroes, reason, siskscre, severity and verdict too.
+	eventFindings = append(
+		eventFindings,
+		signatureDetectionComponentResult.Findings...,
+	)
 
-	var matchedRules types.DetectionRuleList //Empty slice for all matched Rules
-	var matchedRulesIDs []string
-	var matchedRulesReasons []string
-	var matchedRulesCategories []string
-	matchedRulesEffectiveWeight := 0.00
-	categorySeen := make(map[string]bool)
-	detectionRuleMatched := false //Patter match status  variable
-	var effectiveSeverity string
-	var effectiveActions string
-	var findingsList []types.Finding
+	eventFindings = append(
+		eventFindings,
+		resourceAbuseDetectionComponentResult.Findings...,
+	)
 
-	for _, rule := range *Rules {
-		for _, v := range rule.AppliesTo {
-			if scanContext == v {
+	/*
+		Assign finding IDs only after findings from all detectors
+		have been combined.
 
-				ruleRegexPattern := regexp.MustCompile(rule.Pattern)
+		This prevents duplicate IDs such as:
+		Signature Detector: finding-1
+		Resource Abuse Detector: finding-1
+	*/
 
-				matchedIndexSlices := (ruleRegexPattern.FindAllStringIndex(targetString, -1))
-
-				if len(matchedIndexSlices) > 0 {
-					detectionRuleMatched = true //If mathed once, we will just set it to true
-					matchedRules.AppendDetectionRuleSlice(rule)
-					matchedRulesIDs = append(matchedRulesIDs, rule.ID)             //Every rule matched will be added to the array of matched rules
-					matchedRulesReasons = append(matchedRulesReasons, rule.Reason) //For every rule matched, the reason will be added to te reason array
-					matchedRulesEffectiveWeight = scoring.GetEffectiveRiskScoreByMatchedRules(matchedRules)
-					//Here we are getting the effective severity and action from the calculated weight
-					effectiveSeverity, effectiveActions = policy.GetSeverityAndActionFromWeight(PolicyConfig, matchedRulesEffectiveWeight)
-
-					if !categorySeen[rule.Category] {
-						matchedRulesCategories = append(matchedRulesCategories, rule.Category)
-						categorySeen[rule.Category] = true
-
-					} //Here we are making sure that sometimes rules can have same category even if they are different. This logic will
-					//prevent same category appearing for multiple times in our response
-
-					if rule.Category == "sensitive_data" {
-
-						for _, indexSlice := range matchedIndexSlices {
-
-							startIndex := indexSlice[0]
-							endIndex := indexSlice[1]
-							matchedValue := targetString[startIndex:endIndex]
-
-							finding := types.Finding{
-								RuleID:        rule.ID,
-								Category:      rule.Category,
-								StartIndex:    int(startIndex),
-								EndIndex:      int(endIndex),
-								RedactedValue: MaskRedactedValues(matchedValue),
-								FindingType:   rule.FindingType,
-							}
-
-							findingsList = append(findingsList, finding)
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
+	for index := range eventFindings {
+		eventFindings[index].FindingID = fmt.Sprintf(
+			"finding-%d",
+			index+1,
+		)
 	}
 
-	//Adding applies to context to categories -
+	/*
+		Create component scores.
+	*/
 
-	//Returning them all
-	return detectionRuleMatched, matchedRulesIDs, matchedRulesCategories, matchedRulesReasons, matchedRulesEffectiveWeight, effectiveSeverity, effectiveActions, findingsList, scanContext
+	componentScores := types.ComponentScores{
+		"signature_detection": signatureDetectionComponentResult.Score,
+		"resource_abuse":      resourceAbuseDetectionComponentResult.Score,
+	}
 
+	/*
+		Calculate and normalize the final risk score.
+	*/
+
+	finalRiskScore := scoring.NormalizeScores(
+		signatureDetectionComponentResult.Score +
+			resourceAbuseDetectionComponentResult.Score,
+	)
+
+	/*
+		Apply the normal score-to-severity and action policy.
+	*/
+
+	effectiveSeverity, effectiveAction :=
+		policy.GetSeverityAndActionFromWeight(
+			PolicyConfig,
+			finalRiskScore,
+		)
+
+	/*
+		The risk-score policy is always evaluated, even when the
+		final score is zero and the resulting action is ALLOW.
+	*/
+
+	decisionBasis := []string{
+		"risk_score",
+	}
+
+	/*
+		A hard resource constraint must be preserved separately
+		from the numerical risk score.
+
+		For now, a hard constraint forces CRITICAL and BLOCK.
+		This override can later be moved into the policy package.
+	*/
+
+	constraintViolated :=
+		resourceAbuseDetectionComponentResult.ConstraintViolated
+
+	if constraintViolated {
+		effectiveSeverity = "CRITICAL"
+		effectiveAction = "BLOCK"
+
+		decisionBasis = append(
+			decisionBasis,
+			"policy_constraint",
+		)
+	}
+
+	/*
+		Calculate artifact measurements.
+	*/
+
+	byteCount := len(targetString)
+
+	characterCount :=
+		utf8.RuneCountInString(targetString)
+
+	estimatedTokens := int(
+		math.Ceil(float64(byteCount) / 4.0),
+	)
+
+	/*
+		Build and return the complete analysis result.
+	*/
+
+	analysisResult := types.AnalysisResult{
+		HasFindings: len(eventFindings) > 0,
+
+		Findings: eventFindings,
+
+		ComponentScores: componentScores,
+
+		FinalRiskScore: finalRiskScore,
+
+		ConstraintViolated: constraintViolated,
+
+		Severity: effectiveSeverity,
+
+		Action: effectiveAction,
+
+		DecisionBasis: decisionBasis,
+
+		ByteCount: byteCount,
+
+		CharacterCount: characterCount,
+
+		EstimatedTokens: estimatedTokens,
+	}
+
+	return analysisResult
 }
