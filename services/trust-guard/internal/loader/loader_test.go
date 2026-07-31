@@ -8,8 +8,8 @@ import (
 
 func TestLoaderFunctions(t *testing.T) {
 
-	policyConfigFilePath := "../../../../config/policy/policy.json"
-	detectionRuleLibraryPath := "../../../../config/rules/rules.json"
+	policyConfigFilePath := "../../config/policy/policy.json"
+	detectionRuleLibraryPath := "../../config/rules/rules.json"
 
 	policyConfig, err := LoadPolicyConfig(policyConfigFilePath)
 

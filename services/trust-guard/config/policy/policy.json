@@ -2,7 +2,7 @@
   "severity_thresholds": [
     {
       "severity": "LOW",
-      "min_score": 0.00,
+      "min_score": 0.0,
       "max_score": 0.24
     },
     {
@@ -12,13 +12,13 @@
     },
     {
       "severity": "HIGH",
-      "min_score": 0.50,
+      "min_score": 0.5,
       "max_score": 0.74
     },
     {
       "severity": "CRITICAL",
       "min_score": 0.75,
-      "max_score": 1.00
+      "max_score": 1.0
     }
   ],
   "default_actions": {
@@ -26,6 +26,46 @@
     "MEDIUM": "LOG",
     "HIGH": "ALERT",
     "CRITICAL": "BLOCK"
+  },
+  "resource_abuse": {
+    "enabled": true,
+    "artifact_policies": {
+      "user_input": {
+        "max_bytes": {
+          "limit": 12000,
+          "enforcement": "hard"
+        },
+        "max_estimated_tokens": {
+          "limit": 3000,
+          "enforcement": "scored",
+          "weight": 0.35
+        },
+        "repeated_characters": {
+          "max_consecutive_run": 128,
+          "max_consecutive_ratio": 0.4,
+          "minimum_characters": 100,
+          "enforcement": "scored",
+          "weight": 0.25
+        }
+      },
+      "model_output": {
+        "max_bytes": {
+          "limit": 24000,
+          "enforcement": "hard"
+        },
+        "max_estimated_tokens": {
+          "limit": 5000,
+          "enforcement": "scored",
+          "weight": 0.3
+        },
+        "repeated_characters": {
+          "max_consecutive_run": 256,
+          "max_consecutive_ratio": 0.5,
+          "minimum_characters": 100,
+          "enforcement": "scored",
+          "weight": 0.2
+        }
+      }
+    }
   }
-  
 }

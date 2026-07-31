@@ -1,0 +1,531 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bearbreach.com/schemas/ai-trust-boundary-event/v1.json",
+  "title": "BearBreach AI Trust Boundary Event",
+  "description": "Canonical BearBreach event emitted after an AI artifact is analyzed at a trust boundary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "timestamp",
+    "request_id",
+    "producer",
+    "context",
+    "boundary",
+    "artifact",
+    "findings",
+    "decision",
+    "processing"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "event_type": {
+      "type": "string",
+      "const": "ai_trust_boundary_event"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "producer": {
+      "$ref": "#/$defs/producer"
+    },
+    "context": {
+      "$ref": "#/$defs/context"
+    },
+    "boundary": {
+      "$ref": "#/$defs/boundary"
+    },
+    "artifact": {
+      "$ref": "#/$defs/artifact"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "decision": {
+      "$ref": "#/$defs/decision"
+    },
+    "processing": {
+      "$ref": "#/$defs/processing"
+    }
+  },
+  "$defs": {
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "service_version"
+      ],
+      "properties": {
+        "service": {
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "trust_guard",
+            "semantic_guard",
+            "rag_guard",
+            "agent_sec"
+          ]
+        },
+        "service_version": {
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "1.0.0"
+          ]
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tenant_id",
+        "application_id"
+      ],
+      "properties": {
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "application_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "source_component",
+        "destination_component",
+        "stage"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "user_to_application",
+            "application_to_model",
+            "model_to_application",
+            "retriever_to_application",
+            "model_to_tool",
+            "tool_to_model",
+            "application_to_user"
+          ]
+        },
+        "source_component": {
+          "type": "string",
+          "enum": [
+            "end_user",
+            "application",
+            "model",
+            "retriever",
+            "tool",
+            "memory"
+          ]
+        },
+        "destination_component": {
+          "type": "string",
+          "enum": [
+            "end_user",
+            "application",
+            "model",
+            "retriever",
+            "tool",
+            "memory"
+          ]
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "pre_model",
+            "post_model",
+            "pre_tool",
+            "post_tool",
+            "egress"
+          ]
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "origin",
+        "message_role",
+        "content_type",
+        "content_encoding",
+        "byte_count",
+        "character_count",
+        "estimated_token_count"
+      ],
+      "properties": {
+        "artifact_type": {
+          "type": "string",
+          "enum": [
+            "user_input",
+            "model_output",
+            "system_instruction",
+            "retrieved_context",
+            "tool_arguments",
+            "tool_result",
+            "memory_entry"
+          ]
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "end_user",
+            "application",
+            "model",
+            "retriever",
+            "tool",
+            "memory"
+          ]
+        },
+        "message_role": {
+          "type": "string",
+          "enum": [
+            "system",
+            "developer",
+            "user",
+            "assistant",
+            "tool"
+          ]
+        },
+        "content_type": {
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "text/plain",
+            "application/json"
+          ]
+        },
+        "content_encoding": {
+          "type": "string",
+          "enum": [
+            "utf-8",
+            "base64"
+          ]
+        },
+        "byte_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "character_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "estimated_token_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "finding_type",
+        "category",
+        "title",
+        "risk_contribution",
+        "detector",
+        "evidence"
+      ],
+      "properties": {
+        "finding_id": {
+          "type": "string",
+          "pattern": "^finding-[1-9][0-9]*$",
+          "examples": [
+            "finding-1"
+          ]
+        },
+        "finding_type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Machine-readable type of the detected issue, such as api_key, script_tag, or repeated_character_flooding.",
+          "examples": [
+            "api_key",
+            "bearer_token",
+            "password_assignment",
+            "jwt_token",
+            "env_secret",
+            "script_tag",
+            "curl_pipe_shell",
+            "maximum_bytes_exceeded",
+            "estimated_token_limit_exceeded",
+            "repeated_character_flooding"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Broad security category for the finding.",
+          "examples": [
+            "prompt_injection",
+            "sensitive_data",
+            "insecure_output",
+            "resource_abuse"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "risk_contribution": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detector": {
+          "$ref": "#/$defs/detector"
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      }
+    },
+    "detector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "detector_id",
+        "version"
+      ],
+      "properties": {
+        "service": {
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "trust_guard"
+          ]
+        },
+        "detector_id": {
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "signature_detector",
+            "resource_abuse_detector",
+            "semantic_detector",
+            "rag_detector"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "1.0.0"
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_type"
+      ],
+      "properties": {
+        "evidence_type": {
+          "type": "string",
+          "enum": [
+            "signature_match",
+            "metric_threshold"
+          ]
+        },
+        "start_offset": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Zero-based byte offset where the regex match begins."
+        },
+        "end_offset": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Exclusive zero-based byte offset where the regex match ends."
+        },
+        "redacted_value": {
+          "type": "string"
+        },
+        "observed_value": {
+          "type": "number"
+        },
+        "configured_limit": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "bytes",
+            "estimated_tokens",
+            "consecutive_characters",
+            "ratio"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "evidence_type": {
+                "const": "signature_match"
+              }
+            },
+            "required": [
+              "evidence_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "start_offset",
+              "end_offset"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "evidence_type": {
+                "const": "metric_threshold"
+              }
+            },
+            "required": [
+              "evidence_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "observed_value",
+              "configured_limit",
+              "unit"
+            ]
+          }
+        }
+      ]
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "has_findings",
+        "component_scores",
+        "final_risk_score",
+        "severity",
+        "action",
+        "basis"
+      ],
+      "properties": {
+        "has_findings": {
+          "type": "boolean"
+        },
+        "component_scores": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "examples": [
+            {
+              "signature_detection": 1,
+              "resource_abuse": 0.2
+            }
+          ]
+        },
+        "final_risk_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ]
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "ALLOW",
+            "LOG",
+            "ALERT",
+            "BLOCK"
+          ]
+        },
+        "basis": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "risk_score",
+              "policy_constraint"
+            ]
+          }
+        }
+      }
+    },
+    "processing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "duration_ms"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "partial",
+            "failed"
+          ]
+        },
+        "duration_ms": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
