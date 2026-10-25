@@ -1,0 +1,72 @@
+{
+  "thresholds": {
+    "similarity_threshold": 0.2,
+    "margin_threshold": -0.05
+  },
+  "binary_metrics": {
+    "similarity_threshold": 0.2,
+    "margin_threshold": -0.05,
+    "true_positive": 54,
+    "true_negative": 12,
+    "false_positive": 16,
+    "false_negative": 3,
+    "accuracy": 0.7764705882352941,
+    "precision": 0.7714285714285715,
+    "recall": 0.9473684210526315,
+    "f1": 0.8503937007874016,
+    "specificity": 0.42857142857142855,
+    "false_positive_rate": 0.5714285714285714,
+    "false_negative_rate": 0.05263157894736842,
+    "balanced_accuracy": 0.68796992481203,
+    "unsupported_malicious_trigger_rate": 1.0,
+    "unsupported_malicious_abstention_rate": 0.0,
+    "unrelated_benign_trigger_rate": 0.3333333333333333,
+    "unrelated_benign_abstention_rate": 0.6666666666666666
+  },
+  "out_of_scope_metrics": {
+    "unsupported_malicious_total": 6,
+    "unsupported_malicious_triggered": 6,
+    "unsupported_malicious_abstained": 0,
+    "unsupported_malicious_abstention_rate": 0.0,
+    "unsupported_malicious_trigger_rate": 1.0,
+    "unrelated_benign_total": 9,
+    "unrelated_benign_triggered": 3,
+    "unrelated_benign_abstained": 6,
+    "unrelated_benign_abstention_rate": 0.6666666666666666,
+    "unrelated_benign_trigger_rate": 0.3333333333333333
+  },
+  "category_metrics": {
+    "total_in_scope_malicious": 57,
+    "correct_closest_category": 45,
+    "closest_category_accuracy": 0.7894736842105263,
+    "detected_malicious": 54,
+    "correct_category_when_detected": 43,
+    "detected_category_accuracy": 0.7962962962962963,
+    "confusion_matrix": {
+      "prompt_injection": {
+        "prompt_injection": 12,
+        "jailbreak": 2,
+        "role_manipulation": 1,
+        "system_prompt_extraction": 0
+      },
+      "jailbreak": {
+        "prompt_injection": 1,
+        "jailbreak": 10,
+        "role_manipulation": 0,
+        "system_prompt_extraction": 3
+      },
+      "role_manipulation": {
+        "prompt_injection": 0,
+        "jailbreak": 3,
+        "role_manipulation": 10,
+        "system_prompt_extraction": 1
+      },
+      "system_prompt_extraction": {
+        "prompt_injection": 0,
+        "jailbreak": 0,
+        "role_manipulation": 1,
+        "system_prompt_extraction": 13
+      }
+    }
+  }
+}

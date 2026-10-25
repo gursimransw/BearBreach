@@ -30,3 +30,15 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Python Files
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.huggingface/
+.cache/
+*.npy
+*.safetensors
+*.pt
+*.pth

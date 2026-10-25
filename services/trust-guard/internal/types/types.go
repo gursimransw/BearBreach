@@ -1,6 +1,10 @@
 package types
 
-import "time"
+import (
+	"fmt"
+	"net/http"
+	"time"
+)
 
 type Content struct {
 	Content string `json:"content" validate:"required"`
@@ -44,9 +48,10 @@ type SeverityConfig struct {
 // PolicyConfig struct will allow us to reference the policy itself anywhere in the code and we can use both severity config and
 // Default actions config wherever we need.
 type PolicyConfig struct {
-	SeverityConfig       []SeverityConfig    `json:"severity_thresholds"`
-	DefaultActionsConfig map[string]string   `json:"default_actions"`
-	ResourceAbusePolicy  ResourceAbusePolicy `json:"resource_abuse"`
+	SeverityConfig         []SeverityConfig       `json:"severity_thresholds"`
+	DefaultActionsConfig   map[string]string      `json:"default_actions"`
+	ResourceAbusePolicy    ResourceAbusePolicy    `json:"resource_abuse"`
+	SemanticDetectorPolicy SemanticDetectorPolicy `json:"semantic_detection"`
 }
 
 type ArtifactType string
@@ -228,10 +233,66 @@ type AnalysisResult struct {
 	CharacterCount     int
 	EstimatedTokens    int
 }
-
 type DetectionComponentResult struct {
 	ComponentName      string
 	Score              float64
 	Findings           []EventFinding
 	ConstraintViolated bool
 }
+
+type SemanticDetectorPolicy struct {
+	Enabled bool
+	Mode    string
+	Weight  float64
+}
+
+type SemanticDetectorRequest struct {
+	RequestID     string       `json:"request_id"`
+	TenantID      string       `json:"tenant_id"`
+	ApplicationID string       `json:"application_id"`
+	ArtifactType  ArtifactType `json:"artifact_type"`
+	Text          string       `json:"text"`
+}
+
+type SemanticSimilarityResult struct {
+	Detected            bool               `json:"detected"`
+	PredictedCategory   string             `json:"predicted_category"`
+	CategoryCandidate   string             `json:"category_candidate"`
+	MaliciousSimilarity float64            `json:"malicious_similarity"`
+	BenignSimilarity    float64            `json:"benign_similarity"`
+	SemanticMargin      float64            `json:"semantic_margin"`
+	ScoringStrategy     string             `json:"scoring_strategy"`
+	ProcessingTimeMS    float64            `json:"processing_time_ms"`
+	CategoryScores      map[string]float64 `json:"category_scores"`
+	MatchedReferenceIDs []string           `json:"matched_reference_ids"`
+}
+
+type SemanticDetectorServiceResponse struct {
+	RequestID       string                   `json:"request_id"`
+	TenantID        string                   `json:"tenant_id"`
+	ApplicationID   string                   `json:"application_id"`
+	ArtifactType    ArtifactType             `json:"artifact_type"`
+	DetectorVersion string                   `json:"detector_version"`
+	Model           string                   `json:"model"`
+	Result          SemanticSimilarityResult `json:"result"`
+}
+
+type SemanticDetectorClient struct {
+	ServiceURL string
+	HTTPClient http.Client
+}
+
+type SemanticClientError struct {
+	Kind       string
+	StatusCode int
+	Err        error
+}
+
+func (e SemanticClientError) Error() string {
+	if e.StatusCode != 0 {
+		return fmt.Sprintf("semantic detector %s (HTTP %d): %v", e.Kind, e.StatusCode, e.Err)
+	}
+	return fmt.Sprintf("semantic detector %s: %v", e.Kind, e.Err)
+}
+
+func (e SemanticClientError) Unwrap() error { return e.Err }
