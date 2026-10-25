@@ -67,5 +67,10 @@
         }
       }
     }
+  },
+  "semantic_detection": {
+    "enabled": true,
+    "mode": "enforcement",
+    "weight": 0.3
   }
 }

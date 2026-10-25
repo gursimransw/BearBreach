@@ -27,6 +27,7 @@ var validate = validator.New()
 func HandleUserInput(
 	detectionRules *[]types.DetectionRule,
 	policyConfig *types.PolicyConfig,
+	semanticClient types.SemanticDetectorClient,
 ) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -138,12 +139,48 @@ func HandleUserInput(
 			ApplicationID: "application-001",
 		}
 
-		analysisResult := detector.AnalyzeContent(
+		/*
+			Run signature, resource-abuse, and semantic detection.
+
+			The same semantic client is shared across requests, while
+			r.Context() lets an interrupted request cancel its HTTP call.
+			The generated request ID is propagated to the Python service.
+		*/
+
+		analysisResult, err := detector.AnalyzeContent(
+			r.Context(),
+			requestID,
 			detectionRules,
 			policyConfig,
 			input.Content,
 			scanContext,
+			semanticClient,
 		)
+
+		/*
+			A failed semantic analysis is not the same as a clean scan.
+			The current analysis pipeline returns an error instead of
+			an incomplete result, so do not generate a completed event.
+		*/
+
+		if err != nil {
+			slog.Error(
+				"User input analysis failed",
+				slog.String("request_id", requestID),
+				slog.String("error", err.Error()),
+			)
+
+			models.WriteJson(
+				w,
+				http.StatusServiceUnavailable,
+				models.GeneralError(
+					fmt.Errorf("content analysis could not be completed"),
+					requestID,
+				),
+			)
+
+			return
+		}
 
 		/*
 			This measures processing from handler entry through

@@ -1,6 +1,7 @@
 package detector
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"unicode/utf8"
@@ -11,11 +12,26 @@ import (
 )
 
 func AnalyzeContent(
+	ctx context.Context,
+	requestID string,
 	Rules *[]types.DetectionRule,
 	PolicyConfig *types.PolicyConfig,
 	targetString string,
 	scanContext types.ScanContext,
-) types.AnalysisResult {
+	semanticClient types.SemanticDetectorClient,
+) (types.AnalysisResult, error) {
+
+	/*
+		Validate the policy configuration before running any detection components.
+	*/
+
+	if PolicyConfig == nil {
+		return types.AnalysisResult{}, fmt.Errorf("content analysis: policy configuration is nil")
+	}
+
+	/*
+		Run signature-based detection against the artifact.
+	*/
 
 	signatureDetectionComponentResult := SignatureDetector(
 		Rules,
@@ -24,13 +40,39 @@ func AnalyzeContent(
 		scanContext,
 	)
 
-	// DetectResourceAbuse currently accepts PolicyConfig as a value,
-	// so the pointer is dereferenced here.
+	/*
+		Check for resource abuse, including hard policy constraints.
+	*/
+
 	resourceAbuseDetectionComponentResult := DetectResourceAbuse(
 		PolicyConfig,
 		targetString,
 		scanContext,
 	)
+
+	/*
+		Send the artifact to the Python Semantic Detector service.
+
+		The semantic detector applies the configured observation or enforcement
+		mode. A service failure is returned as an error and must not be treated
+		as a negative detection.
+	*/
+
+	semanticDetectionComponentResult, err := SemanticDetector(
+		ctx,
+		requestID,
+		targetString,
+		scanContext,
+		PolicyConfig,
+		semanticClient,
+	)
+
+	if err != nil {
+		return types.AnalysisResult{}, fmt.Errorf(
+			"content analysis: semantic detector failed: %w",
+			err,
+		)
+	}
 
 	/*
 		Merge findings from all detection components.
@@ -48,13 +90,16 @@ func AnalyzeContent(
 		resourceAbuseDetectionComponentResult.Findings...,
 	)
 
+	eventFindings = append(
+		eventFindings,
+		semanticDetectionComponentResult.Findings...,
+	)
+
 	/*
 		Assign finding IDs only after findings from all detectors
 		have been combined.
 
-		This prevents duplicate IDs such as:
-		Signature Detector: finding-1
-		Resource Abuse Detector: finding-1
+		This prevents duplicate IDs between the different detectors.
 	*/
 
 	for index := range eventFindings {
@@ -66,20 +111,26 @@ func AnalyzeContent(
 
 	/*
 		Create component scores.
+
+		In observation mode, semantic detection contributes zero to
+		the enforced risk score even when a semantic finding is present.
 	*/
 
 	componentScores := types.ComponentScores{
 		"signature_detection": signatureDetectionComponentResult.Score,
 		"resource_abuse":      resourceAbuseDetectionComponentResult.Score,
+		"semantic_detection":  semanticDetectionComponentResult.Score,
 	}
 
 	/*
-		Calculate and normalize the final risk score.
+		Calculate and normalize the final risk score using the scores
+		from all three detection components.
 	*/
 
 	finalRiskScore := scoring.NormalizeScores(
 		signatureDetectionComponentResult.Score +
-			resourceAbuseDetectionComponentResult.Score,
+			resourceAbuseDetectionComponentResult.Score +
+			semanticDetectionComponentResult.Score,
 	)
 
 	/*
@@ -106,7 +157,7 @@ func AnalyzeContent(
 		from the numerical risk score.
 
 		For now, a hard constraint forces CRITICAL and BLOCK.
-		This override can later be moved into the policy package.
+		Semantic detection is a scored signal, not a hard constraint.
 	*/
 
 	constraintViolated :=
@@ -163,5 +214,5 @@ func AnalyzeContent(
 		EstimatedTokens: estimatedTokens,
 	}
 
-	return analysisResult
+	return analysisResult, nil
 }

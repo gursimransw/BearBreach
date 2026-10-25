@@ -1,0 +1,110 @@
+{
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "reference_count": 200,
+  "validation_count": 100,
+  "embedding_dimension": 384,
+  "performance": {
+    "model_load_ms": 4455.3044000058435,
+    "reference_encoding_ms": 573.334500004421,
+    "validation_encoding_ms": 302.4818999983836,
+    "similarity_calculation_ms": 38.506700002471916
+  },
+  "groups": {
+    "in_scope_malicious": {
+      "count": 57,
+      "max_malicious_similarity": {
+        "count": 57,
+        "min": 0.1974347084760666,
+        "max": 0.7125793695449829,
+        "mean": 0.5044443322378293,
+        "median": 0.5141773223876953
+      },
+      "max_benign_similarity": {
+        "count": 57,
+        "min": 0.24289922416210175,
+        "max": 0.6515238285064697,
+        "mean": 0.44048767785231274,
+        "median": 0.42374733090400696
+      },
+      "semantic_margin": {
+        "count": 57,
+        "min": -0.08893445134162903,
+        "max": 0.20330312848091125,
+        "mean": 0.06395665438551652,
+        "median": 0.06625503301620483
+      }
+    },
+    "in_scope_benign": {
+      "count": 28,
+      "max_malicious_similarity": {
+        "count": 28,
+        "min": 0.35253697633743286,
+        "max": 0.6004277467727661,
+        "mean": 0.46816031847681316,
+        "median": 0.4824926108121872
+      },
+      "max_benign_similarity": {
+        "count": 28,
+        "min": 0.35132190585136414,
+        "max": 0.6739734411239624,
+        "mean": 0.4914913943835667,
+        "median": 0.4810645282268524
+      },
+      "semantic_margin": {
+        "count": 28,
+        "min": -0.15243691205978394,
+        "max": 0.21279874444007874,
+        "mean": -0.02333107590675354,
+        "median": -0.029866904020309448
+      }
+    },
+    "out_of_scope_malicious": {
+      "count": 6,
+      "max_malicious_similarity": {
+        "count": 6,
+        "min": 0.3467087149620056,
+        "max": 0.4299669861793518,
+        "mean": 0.3931160420179367,
+        "median": 0.39172764122486115
+      },
+      "max_benign_similarity": {
+        "count": 6,
+        "min": 0.29495155811309814,
+        "max": 0.36592501401901245,
+        "mean": 0.33485985298951465,
+        "median": 0.3379430025815964
+      },
+      "semantic_margin": {
+        "count": 6,
+        "min": 0.028989702463150024,
+        "max": 0.09643486142158508,
+        "mean": 0.058256189028422035,
+        "median": 0.05370904505252838
+      }
+    },
+    "out_of_scope_benign": {
+      "count": 9,
+      "max_malicious_similarity": {
+        "count": 9,
+        "min": 0.11101391166448593,
+        "max": 0.45475080609321594,
+        "mean": 0.22283432963821623,
+        "median": 0.20438264310359955
+      },
+      "max_benign_similarity": {
+        "count": 9,
+        "min": 0.114997997879982,
+        "max": 0.48935288190841675,
+        "mean": 0.2630290504958894,
+        "median": 0.2538136839866638
+      },
+      "semantic_margin": {
+        "count": 9,
+        "min": -0.17386400699615479,
+        "max": 0.13760057091712952,
+        "mean": -0.04019472085767322,
+        "median": -0.04943104088306427
+      }
+    }
+  }
+}

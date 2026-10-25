@@ -1,0 +1,93 @@
+
+# ============================================================
+# BEARBREACH SEMANTIC DETECTOR — CONFIGURATION v0.1
+# ============================================================
+
+service:
+  name: semantic-detector
+  version: "0.1.0"
+  host: "0.0.0.0"
+  port: 8001
+
+# ------------------------------------------------------------
+# EMBEDDING MODEL
+# ------------------------------------------------------------
+
+model:
+  provider: sentence-transformers
+  name: "BAAI/bge-base-en-v1.5"
+  device: cpu
+  batch_size: 32
+  normalize_embeddings: true
+
+  reference_prefix: ""
+  query_prefix: "Represent this sentence for searching relevant passages: "
+
+# ------------------------------------------------------------
+# REFERENCE CORPUS
+# ------------------------------------------------------------
+
+references:
+  source_path: "libraries/semantic-corpus/curated/references.jsonl"
+  embeddings_path: "services/semantic-detector/artifacts/reference_embeddings.npy"
+  manifest_path: "services/semantic-detector/artifacts/embeddings_manifest.json"
+
+  preload_on_startup: true
+  use_cached_embeddings: false
+  verify_integrity: true
+
+  expected_sha256: "a5ad5074d76adcf01dd3b7f4de78cf0bd7b8b67c6d06e374cf2cc30c33dd8e2e"
+
+# ------------------------------------------------------------
+# SEMANTIC SCORING
+# ------------------------------------------------------------
+
+scoring:
+  strategy: category_topk_mean
+  top_k: 3
+
+  supported_categories:
+    - prompt_injection
+    - jailbreak
+    - role_manipulation
+    - system_prompt_extraction
+
+  benign_comparison: global_topk_mean
+
+  thresholds:
+    similarity: 0.5673961877822876
+    margin: -0.0007279515266418457
+    support: null
+
+# ------------------------------------------------------------
+# INPUT VALIDATION
+# ------------------------------------------------------------
+
+input:
+  supported_artifacts:
+    - user_input
+    - model_output
+
+  max_character_bytes: 16384
+  reject_empty_text: true
+
+# ------------------------------------------------------------
+# RESPONSE CONFIGURATION
+# ------------------------------------------------------------
+
+response:
+  include_category_scores: true
+  include_reference_ids: true
+  max_evidence_references: 5
+  include_reference_text: false
+
+# ------------------------------------------------------------
+# LOGGING
+# ------------------------------------------------------------
+
+logging:
+  level: INFO
+  structured: true
+  log_artifact_text: false
+  log_request_id: true
+  log_processing_time: true

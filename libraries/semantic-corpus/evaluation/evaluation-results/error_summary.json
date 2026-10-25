@@ -1,0 +1,94 @@
+{
+  "thresholds": {
+    "similarity_threshold": 0.2,
+    "margin_threshold": -0.05
+  },
+  "error_counts": {
+    "false_positives": 16,
+    "false_negatives": 3,
+    "category_errors": 11,
+    "unsupported_malicious_triggers": 6,
+    "unrelated_benign_triggers": 3
+  },
+  "false_positive_breakdown": {
+    "by_related_category": {
+      "prompt_injection": 6,
+      "jailbreak": 4,
+      "system_prompt_extraction": 2,
+      "role_manipulation": 4
+    },
+    "by_difficulty": {
+      "hard": 10,
+      "medium": 6
+    },
+    "by_evaluation_type": {
+      "incident_analysis": 2,
+      "quoted_attack_analysis": 6,
+      "hard_benign": 7,
+      "security_education": 1
+    },
+    "by_predicted_category": {
+      "prompt_injection": 4,
+      "jailbreak": 6,
+      "role_manipulation": 4,
+      "system_prompt_extraction": 2
+    }
+  },
+  "false_negative_breakdown": {
+    "by_actual_category": {
+      "jailbreak": 1,
+      "prompt_injection": 2
+    },
+    "by_difficulty": {
+      "medium": 3
+    },
+    "by_evaluation_type": {
+      "paraphrased_malicious": 1,
+      "indirect_malicious": 2
+    }
+  },
+  "category_error_breakdown": {
+    "by_actual_category": {
+      "prompt_injection": 3,
+      "jailbreak": 3,
+      "role_manipulation": 4,
+      "system_prompt_extraction": 1
+    },
+    "by_predicted_category": {
+      "jailbreak": 5,
+      "system_prompt_extraction": 3,
+      "prompt_injection": 1,
+      "role_manipulation": 2
+    },
+    "by_difficulty": {
+      "easy": 3,
+      "medium": 5,
+      "hard": 3
+    },
+    "by_evaluation_type": {
+      "direct_malicious": 4,
+      "paraphrased_malicious": 4,
+      "subtle_malicious": 3
+    }
+  },
+  "unsupported_malicious_breakdown": {
+    "by_predicted_category": {
+      "system_prompt_extraction": 3,
+      "role_manipulation": 2,
+      "jailbreak": 1
+    },
+    "by_difficulty": {
+      "easy": 3,
+      "hard": 3
+    }
+  },
+  "unrelated_benign_breakdown": {
+    "by_predicted_category": {
+      "prompt_injection": 3
+    },
+    "by_difficulty": {
+      "medium": 2,
+      "easy": 1
+    }
+  }
+}

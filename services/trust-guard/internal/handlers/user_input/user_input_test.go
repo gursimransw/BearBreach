@@ -2,10 +2,14 @@ package userInput
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/gursimransw/BearBreach/services/trust-guard/internal/clients"
 
 	"github.com/gursimransw/BearBreach/services/trust-guard/internal/types"
 )
@@ -88,6 +92,7 @@ func TestUserInputAnalyzerMaliciousContent(t *testing.T) {
 	handler := HandleUserInput(
 		&testRules,
 		&testPolicyConfig,
+		types.SemanticDetectorClient{},
 	)
 
 	handler.ServeHTTP(
@@ -469,6 +474,7 @@ func TestUserInputAnalyzerCleanContent(t *testing.T) {
 	handler := HandleUserInput(
 		&testRules,
 		&testPolicyConfig,
+		types.SemanticDetectorClient{},
 	)
 
 	handler.ServeHTTP(
@@ -571,6 +577,7 @@ func TestUserInputAnalyzerEmptyBody(t *testing.T) {
 	handler := HandleUserInput(
 		&testRules,
 		&testPolicyConfig,
+		types.SemanticDetectorClient{},
 	)
 
 	handler.ServeHTTP(
@@ -606,6 +613,7 @@ func TestUserInputAnalyzerMalformedBody(t *testing.T) {
 	handler := HandleUserInput(
 		&testRules,
 		&testPolicyConfig,
+		types.SemanticDetectorClient{},
 	)
 
 	handler.ServeHTTP(
@@ -639,6 +647,7 @@ func TestUserInputAnalyzerMissingContent(t *testing.T) {
 	handler := HandleUserInput(
 		&testRules,
 		&testPolicyConfig,
+		types.SemanticDetectorClient{},
 	)
 
 	handler.ServeHTTP(
@@ -675,6 +684,7 @@ func TestUserInputAnalyzerUnknownField(t *testing.T) {
 	handler := HandleUserInput(
 		&testRules,
 		&testPolicyConfig,
+		types.SemanticDetectorClient{},
 	)
 
 	handler.ServeHTTP(
@@ -688,5 +698,174 @@ func TestUserInputAnalyzerUnknownField(t *testing.T) {
 			http.StatusBadRequest,
 			responseRecorder.Code,
 		)
+	}
+}
+
+// The mock returns a valid Python-service response using the incoming correlation fields.
+func newSemanticTestClient(t *testing.T, detected bool, status int) types.SemanticDetectorClient {
+	t.Helper()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost || r.URL.Path != "/v1/analyze" {
+			http.Error(w, "unexpected route", http.StatusNotFound)
+			return
+		}
+		if status != http.StatusOK {
+			http.Error(w, "service unavailable", status)
+			return
+		}
+		var req types.SemanticDetectorRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+		if r.Header.Get("X-Request-ID") != req.RequestID {
+			http.Error(w, "incorrect request ID", 400)
+			return
+		}
+		predicted := any(nil)
+		if detected {
+			predicted = "prompt_injection"
+		}
+		response := map[string]any{
+			"request_id": req.RequestID, "tenant_id": req.TenantID,
+			"application_id": req.ApplicationID, "artifact_type": req.ArtifactType,
+			"detector_version": "0.1.0", "model": "BAAI/bge-base-en-v1.5",
+			"result": map[string]any{
+				"detected": detected, "predicted_category": predicted,
+				"category_candidate":   "prompt_injection",
+				"malicious_similarity": 0.72, "benign_similarity": 0.61,
+				"semantic_margin": 0.11, "scoring_strategy": "category_topk_mean",
+				"processing_time_ms":    12.5,
+				"category_scores":       map[string]float64{"prompt_injection": 0.72},
+				"matched_reference_ids": []string{"BB-SEM-000001"},
+			},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			t.Errorf("write mock response: %v", err)
+		}
+	}))
+	t.Cleanup(server.Close)
+	client, err := clients.NewSemanticDetectorClient(server.URL, 2*time.Second)
+	if err != nil {
+		t.Fatalf("create semantic test client: %v", err)
+	}
+	return client
+}
+
+// Verify semantic findings are recorded in observation mode and weighted in enforcement mode.
+func semanticHandlerTestPolicy() types.PolicyConfig {
+	return types.PolicyConfig{
+		SeverityConfig: []types.SeverityConfig{
+			{Severity: "LOW", MinScore: 0, MaxScore: 0.24},
+			{Severity: "MEDIUM", MinScore: 0.25, MaxScore: 0.49},
+			{Severity: "HIGH", MinScore: 0.50, MaxScore: 0.74},
+			{Severity: "CRITICAL", MinScore: 0.75, MaxScore: 1},
+		},
+		DefaultActionsConfig: map[string]string{
+			"LOW":      "ALLOW",
+			"MEDIUM":   "LOG",
+			"HIGH":     "ALERT",
+			"CRITICAL": "BLOCK",
+		},
+		ResourceAbusePolicy: types.ResourceAbusePolicy{
+			Enabled: true,
+			ArtifactPolicies: map[types.ArtifactType]types.ArtifactResourcePolicy{
+				types.ArtifactUserInput: {
+					MaxBytes: types.MaxBytesPolicy{
+						Limit:       12000,
+						Enforcement: "hard",
+					},
+					MaxEstimatedTokens: types.MaxEstimatedTokensPolicy{
+						Limit:       3000,
+						Enforcement: types.EnforcementScored,
+						Weight:      0.35,
+					},
+					RepeatedCharacters: types.RepeatedCharactersPolicy{
+						MaxConsecutiveRun:   128,
+						MaxConsecutiveRatio: 0.4,
+						MinimumCharacters:   100,
+						Enforcement:         types.EnforcementScored,
+						Weight:              0.25,
+					},
+				},
+				types.ArtifactModelOutput: {
+					MaxBytes: types.MaxBytesPolicy{
+						Limit:       24000,
+						Enforcement: "hard",
+					},
+					MaxEstimatedTokens: types.MaxEstimatedTokensPolicy{
+						Limit:       5000,
+						Enforcement: types.EnforcementScored,
+						Weight:      0.30,
+					},
+					RepeatedCharacters: types.RepeatedCharactersPolicy{
+						MaxConsecutiveRun:   256,
+						MaxConsecutiveRatio: 0.5,
+						MinimumCharacters:   100,
+						Enforcement:         types.EnforcementScored,
+						Weight:              0.20,
+					},
+				},
+			},
+		},
+	}
+}
+
+func TestSemanticIntegrationModes(t *testing.T) {
+	for _, tc := range []struct {
+		mode      string
+		wantScore float64
+	}{{"observation", 0}, {"enforcement", 0.30}} {
+		t.Run(tc.mode, func(t *testing.T) {
+			rules := []types.DetectionRule{}
+			policy := semanticHandlerTestPolicy()
+			policy.SemanticDetectorPolicy.Enabled = true
+			policy.SemanticDetectorPolicy.Mode = tc.mode
+			policy.SemanticDetectorPolicy.Weight = 0.30
+			client := newSemanticTestClient(t, true, http.StatusOK)
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/analyze-input", strings.NewReader(`{"content":"Please explain dinosaurs."}`))
+			recorder := httptest.NewRecorder()
+			HandleUserInput(&rules, &policy, client).ServeHTTP(recorder, req)
+			if recorder.Code != http.StatusOK {
+				t.Fatalf("status %d: %s", recorder.Code, recorder.Body.String())
+			}
+			var event types.AITrustBoundaryEvent
+			if err := json.NewDecoder(recorder.Body).Decode(&event); err != nil {
+				t.Fatal(err)
+			}
+			if math.Abs(event.Decision.ComponentScores["semantic_detection"]-tc.wantScore) > 1e-6 {
+				t.Fatalf("semantic score: got %v want %v", event.Decision.ComponentScores["semantic_detection"], tc.wantScore)
+			}
+			if math.Abs(event.Decision.FinalRiskScore-tc.wantScore) > 1e-6 {
+				t.Fatalf("final risk score: got %v want %v", event.Decision.FinalRiskScore, tc.wantScore)
+			}
+			if event.Decision.ComponentScores["resource_abuse"] != 0 {
+				t.Fatalf("resource abuse score: got %v want 0", event.Decision.ComponentScores["resource_abuse"])
+			}
+			if len(event.Findings) != 1 {
+				t.Fatalf("expected one semantic finding, got %d", len(event.Findings))
+			}
+			finding := event.Findings[0]
+			if finding.FindingID != "finding-1" || finding.FindingType != "semantic_detection" || finding.Detector.Service != "semantic-detector" {
+				t.Fatalf("incorrect semantic finding: %+v", finding)
+			}
+		})
+	}
+}
+
+// A failed Python-service call returns 503, not a clean security decision.
+func TestSemanticServiceUnavailable(t *testing.T) {
+	rules := []types.DetectionRule{}
+	policy := semanticHandlerTestPolicy()
+	policy.SemanticDetectorPolicy.Enabled = true
+	policy.SemanticDetectorPolicy.Mode = "observation"
+	policy.SemanticDetectorPolicy.Weight = 0.30
+	client := newSemanticTestClient(t, false, http.StatusServiceUnavailable)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/analyze-input", strings.NewReader(`{"content":"A valid user message."}`))
+	recorder := httptest.NewRecorder()
+	HandleUserInput(&rules, &policy, client).ServeHTTP(recorder, req)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d: %s", recorder.Code, recorder.Body.String())
 	}
 }

@@ -27,7 +27,13 @@ var validate = validator.New()
 func HandleModelOutput(
 	detectionRules *[]types.DetectionRule,
 	policyConfig *types.PolicyConfig,
+	semanticClient types.SemanticDetectorClient,
 ) http.HandlerFunc {
+
+	/*
+		The semantic client is supplied when the handler is registered.
+		The same configured client can be reused by both input and output handlers.
+	*/
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		startedAt := time.Now()
@@ -41,6 +47,10 @@ func HandleModelOutput(
 			slog.String("user_agent", r.UserAgent()),
 			slog.String("request_id", requestID),
 		)
+
+		/*
+			Decode the request body and reject unknown JSON fields.
+		*/
 
 		var output types.Content
 
@@ -82,6 +92,11 @@ func HandleModelOutput(
 
 			return
 		}
+
+		/*
+			Validate the decoded request before passing its content
+			to the detection pipeline.
+		*/
 
 		if err := validate.Struct(output); err != nil {
 			validationErrors, ok := err.(validator.ValidationErrors)
@@ -137,16 +152,57 @@ func HandleModelOutput(
 			ApplicationID: "application-001",
 		}
 
-		analysisResult := detector.AnalyzeContent(
+		/*
+			AnalyzeContent runs signature, resource-abuse, and semantic
+			detection. The request context allows the Python HTTP call
+			to be canceled when this request is canceled.
+
+			The same request ID is forwarded to the semantic service
+			to correlate the two services' analysis records.
+		*/
+
+		analysisResult, err := detector.AnalyzeContent(
+			r.Context(),
+			requestID,
 			detectionRules,
 			policyConfig,
 			output.Content,
 			scanContext,
+			semanticClient,
 		)
 
 		/*
+			The current analysis pipeline returns an error if semantic
+			analysis fails. Do not create a completed event or report
+			the artifact as clean when the scan was incomplete.
+
+			A future degraded-analysis mode can preserve successful
+			detector results while identifying the failed component.
+		*/
+
+		if err != nil {
+			slog.Error(
+				"Model output analysis failed",
+				slog.String("request_id", requestID),
+				slog.String("error", err.Error()),
+			)
+
+			models.WriteJson(
+				w,
+				http.StatusServiceUnavailable,
+				models.GeneralError(
+					fmt.Errorf("content analysis could not be completed"),
+					requestID,
+				),
+			)
+
+			return
+		}
+
+		/*
 			This duration measures processing from handler entry
-			through completion of content analysis.
+			through completion of content analysis, including the
+			semantic service request when enabled.
 		*/
 
 		durationMS :=
@@ -196,6 +252,12 @@ func HandleModelOutput(
 			EstimatedTokenCount: analysisResult.EstimatedTokens,
 		}
 
+		/*
+			ComponentScores now includes semantic_detection.
+			Observation mode records semantic findings without adding
+			the semantic weight to the enforced final risk score.
+		*/
+
 		decision := types.Decision{
 			HasFindings:     analysisResult.HasFindings,
 			ComponentScores: analysisResult.ComponentScores,
@@ -204,6 +266,11 @@ func HandleModelOutput(
 			Action:          analysisResult.Action,
 			Basis:           analysisResult.DecisionBasis,
 		}
+
+		/*
+			Create the AI Trust Boundary Event with findings gathered
+			from all enabled detection components.
+		*/
 
 		event := events.GenerateAITrustBoundaryEvent(
 			producer,

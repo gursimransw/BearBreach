@@ -1,0 +1,18 @@
+{
+  "config_version": "bearbreach-semantic-detector-research-v0.1",
+  "selection": "validation_fully_constrained",
+  "model_name": "BAAI/bge-base-en-v1.5",
+  "strategy": "category_topk_mean",
+  "top_k": 3,
+  "input_format": "bge_query_instruction",
+  "bge_query_instruction": "Represent this sentence for searching relevant passages: ",
+  "model_max_seq_length": 512,
+  "embedding_dimensions": 768,
+  "similarity_threshold": 0.5673961877822876,
+  "margin_threshold": -0.0007279515266418457,
+  "support_threshold": null,
+  "reference_sha256": "a5ad5074d76adcf01dd3b7f4de78cf0bd7b8b67c6d06e374cf2cc30c33dd8e2e",
+  "validation_sha256": "801169271bf6a72729062b204df96be148e38677ecbe41dabe8d9003e0dbbcd0",
+  "expected_test_count": 40,
+  "notes": "Freeze these values before first held-out test; do not tune on test data."
+}
