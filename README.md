@@ -136,7 +136,7 @@ The Python service supplies **detection evidence**. Trust Guard owns the final r
                           Application Response
 ```
 
-The current Docker setup runs Trust Guard and Semantic Detector as separate containers on a shared network.
+The current Docker Compose setup runs Trust Guard and Semantic Detector as separate containers on a shared private network. Trust Guard is the host-facing API; the Semantic Detector is reachable only by other services on the Compose network.
 
 ---
 
@@ -202,49 +202,62 @@ The Semantic Detector API is intended for internal service-to-service communicat
 
 ---
 
-## Running with Docker
+## Running with Docker Compose
 
-Build commands are run from the **BearBreach repository root**.
+Docker Compose is the recommended way to run the current BearBreach services together. Run these commands from the **BearBreach repository root**, where `compose.yaml` is located.
 
-```powershell
-docker build -t bearbreach-semantic:0.1.0 -f services/semantic-detector/Dockerfile .
-docker build -t bearbreach-trust-guard:0.1.0 -f services/trust-guard/Dockerfile services/trust-guard
+**Requirements:** Docker Engine or Docker Desktop with Docker Compose support. An internet connection may be needed on first startup to download the Semantic Detector model.
+
+### Start BearBreach
+
+```bash
+git clone https://github.com/gursimransw/BearBreach.git
+cd BearBreach
+docker compose up -d --build
 ```
 
-Create a network and start the services:
+Compose builds and starts both services, creates a shared network automatically, and waits for the Semantic Detector readiness check to pass before starting Trust Guard.
 
-```powershell
-docker network create bearbreach-network
+| Service | Access | Purpose |
+| --- | --- | --- |
+| **Trust Guard** | `http://localhost:8080` | Publicly mapped API for input/output analysis |
+| **Semantic Detector** | `http://semantic-detector:8001` (Compose network only) | Internal semantic analysis service |
 
-docker run -d `
-  --name bb-semantic-detector `
-  --network bearbreach-network `
-  -p 8001:8001 `
-  bearbreach-semantic:0.1.0
+The Semantic Detector's port `8001` is **not published to the host**. Trust Guard connects to it by the Compose service name through the configured `SEMANTIC_DETECTOR_URL` environment variable. No manual `docker network create` or separate `docker run` commands are required.
 
-docker run -d `
-  --name bb-trust-guard `
-  --network bearbreach-network `
-  -p 8080:8000 `
-  bearbreach-trust-guard:0.1.0
+> **Security note:** The current setup is intended for local development and controlled evaluation, not internet-facing production deployment. Before exposing Trust Guard beyond a trusted host, add appropriate authentication, TLS, and network restrictions. The published host port may bind to more than the local loopback interface depending on your Compose configuration.
+
+### Check status and logs
+
+```bash
+docker compose ps
+docker compose logs -f
 ```
 
-**Networking:** When Trust Guard runs in Docker, its Semantic Detector base URL must resolve to `http://bb-semantic-detector:8001` (not `127.0.0.1:8001`). The current Go configuration may require updating this URL before building; moving it to runtime configuration is planned.
+The Semantic Detector should report a healthy state once its model and reference data have loaded. First startup can take longer if model weights need to be downloaded.
 
-Verify the services:
-
-```powershell
-curl.exe http://localhost:8001/health/ready
-```
-
-Test Trust Guard from PowerShell:
+### Send a test request (PowerShell)
 
 ```powershell
 $body = @{ content = "Explain how dinosaurs lived." } | ConvertTo-Json
 Invoke-RestMethod -Uri "http://localhost:8080/api/v1/analyze-input" -Method Post -ContentType "application/json" -Body $body
 ```
 
-Model weights may need to be downloaded when the Semantic Detector starts. The reference corpus is required by its configured loader.
+The response is an AI Trust Boundary Event containing detection findings and the policy decision. Applications integrating BearBreach are responsible for acting on that decision.
+
+### Stop BearBreach
+
+```bash
+docker compose down
+```
+
+To rebuild after a change:
+
+```bash
+docker compose up -d --build
+```
+
+**Current limitation:** Model weights may be downloaded during a clean startup, and reference data must be available to the Semantic Detector's loader. Persistent model caching and fresh-clone installation verification are still planned.
 
 ---
 
@@ -278,6 +291,7 @@ End-to-end Docker testing has also demonstrated that a semantic finding can iden
 
 ```text
 BearBreach/
+├── compose.yaml
 ├── assets/
 ├── libraries/
 │   └── semantic-corpus/
