@@ -46,12 +46,22 @@ func main() {
 		into your existing server configuration before deployment.
 	*/
 
+	semanticDetectorURL := os.Getenv("SEMANTIC_DETECTOR_URL")
+
+	if semanticDetectorURL == "" {
+		semanticDetectorURL = "http://127.0.0.1:8001"
+	}
+
 	semanticClient, err := clients.NewSemanticDetectorClient(
-		"http://bb-semantic-detector:8001",
+		semanticDetectorURL,
 		3*time.Second,
 	)
+
 	if err != nil {
-		slog.Error("Failed to initialize semantic detector client", slog.String("error", err.Error()))
+		slog.Error(
+			"Failed to initialize Semantic Detector client",
+			slog.String("error", err.Error()),
+		)
 		os.Exit(1)
 	}
 

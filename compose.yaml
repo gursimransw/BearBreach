@@ -1,0 +1,29 @@
+services:
+  semantic-detector:
+    build:
+      context: .
+      dockerfile: services/semantic-detector/Dockerfile
+
+    healthcheck:
+      test: 
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health/ready', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  trust-guard:
+    build:
+      context: ./services/trust-guard
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8000"
+    environment:
+      SEMANTIC_DETECTOR_URL: "http://semantic-detector:8001"
+
+    depends_on:
+      semantic-detector:
+        condition: service_healthy
